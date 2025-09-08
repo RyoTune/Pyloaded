@@ -7,6 +7,7 @@ namespace Pyloaded.Reloaded.Python;
 internal class PyloadedHook(IScans scans)
 {
     private static PyObject? _inspect;
+    private HookBundle? _hookBundle;
 
     public PyloadedHook(IScans scans, string? id, string pattern, PyObject hookMethod) : this(scans)
         => SetupScanHook(id, pattern, 0, hookMethod, null);
@@ -20,7 +21,11 @@ internal class PyloadedHook(IScans scans)
     public PyloadedHook(IScans scans, string? id, nint defaultResult, PyObject hookMethod, PyObject onFail) : this(scans)
         => SetupScanHook(id, null, defaultResult, hookMethod, onFail);
 
-    public object? Hook { get; private set; }
+    public IHook? Hook => _hookBundle?.Hook;
+
+    internal Action? Enable => _hookBundle?.Enable;
+
+    internal Action? Disable => _hookBundle?.Disable;
     
     /// <summary>
     /// Handles setting up a scan hook for all possible configuration of input parameters.
@@ -47,40 +52,58 @@ internal class PyloadedHook(IScans scans)
 
             if (pattern != null)
             {
-                scans.AddScanHook(id, pattern, (result, hooks) => Hook = CreateHook(hooks, hookMethod, methodInfo, result), onFailCb);
+                scans.AddScanHook(id, pattern, (result, hooks) => _hookBundle = CreateHook(hooks, hookMethod, methodInfo, result), onFailCb);
             }
             else
             {
-                scans.AddScanHook(id, defaultResult, (result, hooks) => Hook = CreateHook(hooks, hookMethod, methodInfo, result), onFailCb);
+                scans.AddScanHook(id, defaultResult, (result, hooks) => _hookBundle = CreateHook(hooks, hookMethod, methodInfo, result), onFailCb);
             }
         }
     }
     
-    private static object CreateHook(IReloadedHooks hooks, PyObject hookMethod, MethodInfo methodInfo, nint address)
+    private static HookBundle CreateHook(IReloadedHooks hooks, PyObject hookMethod, MethodInfo methodInfo, nint address)
     {
-        object hook = methodInfo.NumParams switch
+        switch (methodInfo.NumParams)
         {
-            0 => hooks.CreateHook<Func0>(() => CallPyMethod(hookMethod), address).Activate(),
-            1 => hooks.CreateHook<Func1>((a) => CallPyMethod(hookMethod, a), address).Activate(),
-            2 => hooks.CreateHook<Func2>((a, b) => CallPyMethod(hookMethod, a, b), address).Activate(),
-            3 => hooks.CreateHook<Func3>((a, b, c) => CallPyMethod(hookMethod, a, b, c), address).Activate(),
-            4 => hooks.CreateHook<Func4>((a, b, c, d) => CallPyMethod(hookMethod, a, b, c, d), address)
-                .Activate(),
-            5 => hooks.CreateHook<Func5>((a, b, c, d, e) => CallPyMethod(hookMethod, a, b, c, d, e), address)
-                .Activate(),
-            6 => hooks.CreateHook<Func6>((a, b, c, d, e, f) => CallPyMethod(hookMethod, a, b, c, d, e, f),
-                    address)
-                .Activate(),
-            7 => hooks.CreateHook<Func7>((a, b, c, d, e, f, g) => CallPyMethod(hookMethod, a, b, c, d, e, f, g),
-                    address)
-                .Activate(),
-            8 => hooks.CreateHook<Func8>((a, b, c, d, e, f, g, h) => CallPyMethod(hookMethod, a, b, c, d, e, f, g, h),
-                    address)
-                .Activate(),
-            _ => throw new NotSupportedException("Function hooks can only have a maximum of 8 parameters.")
-        };
-
-        return hook;
+            case 0:
+                var hook0 = hooks.CreateHook<Func0>(() => CallPyMethod(hookMethod), address).Activate();
+                return new(hook0, hook0.Enable, hook0.Disable);
+            case 1:
+                var hook1 = hooks.CreateHook<Func1>((a) => CallPyMethod(hookMethod, a), address).Activate();
+                return new(hook1, hook1.Enable, hook1.Disable);
+            case 2:
+                var hook2 = hooks.CreateHook<Func2>((a, b) => CallPyMethod(hookMethod, a, b), address).Activate();
+                return new(hook2, hook2.Enable, hook2.Disable);
+            case 3:
+                var hook3 = hooks.CreateHook<Func3>((a, b, c) => CallPyMethod(hookMethod, a, b, c), address).Activate();
+                return new(hook3, hook3.Enable, hook3.Disable);
+            case 4:
+                var hook4 = hooks.CreateHook<Func4>((a, b, c, d) => CallPyMethod(hookMethod, a, b, c, d), address)
+                    .Activate();
+                return new(hook4, hook4.Enable, hook4.Disable);
+            case 5:
+                var hook5 = hooks.CreateHook<Func5>((a, b, c, d, e) => CallPyMethod(hookMethod, a, b, c, d, e), address)
+                    .Activate();
+                return new(hook5, hook5.Enable, hook5.Disable);
+            case 6:
+                var hook6 = hooks.CreateHook<Func6>((a, b, c, d, e, f) => CallPyMethod(hookMethod, a, b, c, d, e, f),
+                        address)
+                    .Activate();
+                return new(hook6, hook6.Enable, hook6.Disable);
+            case 7:
+                var hook7 = hooks.CreateHook<Func7>((a, b, c, d, e, f, g) => CallPyMethod(hookMethod, a, b, c, d, e, f, g),
+                        address)
+                    .Activate();
+                return new(hook7, hook7.Enable, hook7.Disable);
+            case 8:
+                var hook8 = hooks
+                    .CreateHook<Func8>((a, b, c, d, e, f, g, h) => CallPyMethod(hookMethod, a, b, c, d, e, f, g, h),
+                        address)
+                    .Activate();
+                return new(hook8, hook8.Enable, hook8.Disable);
+            default:
+                throw new NotSupportedException("Function hooks can only have a maximum of 8 parameters.");
+        }
     }
 
     private static nint CallPyMethod(PyObject method, params nint[] args)
@@ -117,4 +140,6 @@ internal class PyloadedHook(IScans scans)
     private delegate nint Func8(nint a, nint b, nint c, nint d, nint e, nint f, nint g, nint h);
 
     private readonly record struct MethodInfo(string Name, int NumParams);
+
+    private record HookBundle(IHook Hook, Action Enable, Action Disable);
 }
