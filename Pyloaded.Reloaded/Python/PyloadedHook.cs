@@ -1,22 +1,23 @@
 using Python.Runtime;
 using Reloaded.Hooks.Definitions;
+using RyoTune.Reloaded.Scans;
 
 namespace Pyloaded.Reloaded.Python;
 
-internal class PyloadedHook
+internal class PyloadedHook(IScans scans)
 {
     private static PyObject? _inspect;
 
-    public PyloadedHook(string? id, string pattern, PyObject hookMethod)
+    public PyloadedHook(IScans scans, string? id, string pattern, PyObject hookMethod) : this(scans)
         => SetupScanHook(id, pattern, 0, hookMethod, null);
     
-    public PyloadedHook(string? id, string pattern, PyObject hookMethod, PyObject onFail)
+    public PyloadedHook(IScans scans, string? id, string pattern, PyObject hookMethod, PyObject onFail) : this(scans)
         => SetupScanHook(id, pattern, 0, hookMethod, onFail);
     
-    public PyloadedHook(string? id, nint defaultResult, PyObject hookMethod)
+    public PyloadedHook(IScans scans, string? id, nint defaultResult, PyObject hookMethod) : this(scans)
         => SetupScanHook(id, null, defaultResult, hookMethod, null);
 
-    public PyloadedHook(string? id, nint defaultResult, PyObject hookMethod, PyObject onFail)
+    public PyloadedHook(IScans scans, string? id, nint defaultResult, PyObject hookMethod, PyObject onFail) : this(scans)
         => SetupScanHook(id, null, defaultResult, hookMethod, onFail);
 
     public object? Hook { get; private set; }
@@ -46,11 +47,11 @@ internal class PyloadedHook
 
             if (pattern != null)
             {
-                Project.Scans.AddScanHook(id, pattern, (result, hooks) => Hook = CreateHook(hooks, hookMethod, methodInfo, result), onFailCb);
+                scans.AddScanHook(id, pattern, (result, hooks) => Hook = CreateHook(hooks, hookMethod, methodInfo, result), onFailCb);
             }
             else
             {
-                Project.Scans.AddScanHook(id, defaultResult, (result, hooks) => Hook = CreateHook(hooks, hookMethod, methodInfo, result), onFailCb);
+                scans.AddScanHook(id, defaultResult, (result, hooks) => Hook = CreateHook(hooks, hookMethod, methodInfo, result), onFailCb);
             }
         }
     }
