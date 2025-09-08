@@ -42,12 +42,16 @@
         <None Update="Preview.png">
             <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
         </None>
+        <None Visible="false" Include="$(Pkgpython)\tools\**\*" Link="python\%(RecursiveDir)%(Filename)%(Extension)" CopyToOutputDirectory="PreserveNewest"/>
     </ItemGroup>
 
     <ItemGroup>
+        <PackageReference Include="python" Version="3.13.7"/>
+        <PackageReference Include="pythonnet" Version="3.0.5" />
         <PackageReference Include="Reloaded.Mod.Interfaces" Version="2.4.0" ExcludeAssets="runtime"/>
         <PackageReference Include="Reloaded.SharedLib.Hooks" Version="1.9.0"/>
-        <PackageReference Include="RyoTune.Reloaded" Version="4.1.3"/>
+        <PackageReference Include="RyoTune.Reloaded" Version="4.2.0" />
         <PackageReference Include="Reloaded.Memory.SigScan.ReloadedII.Interfaces" Version="1.2.0"/>
     </ItemGroup>
+
 </Project>
