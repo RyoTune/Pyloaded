@@ -7,7 +7,7 @@ public class PyloadedScanHooks(IScans scans)
 {
     // ReSharper disable once CollectionNeverQueried.Local
     // Need to store hook references so they don't get GC'd.
-    private static readonly List<object> PyHooks = [];
+    private readonly List<PyloadedHook> _pyHooks = [];
 
     public void AddScan(string id, PyObject onSuccess, string pattern)
     {
@@ -34,56 +34,64 @@ public class PyloadedScanHooks(IScans scans)
     public object CreateHook(string id, PyObject hookMethod, string pattern)
     {
         var pyHook = new PyloadedHook(scans, id, pattern, hookMethod);
-        PyHooks.Add(pyHook);
+        _pyHooks.Add(pyHook);
         return pyHook;
     }
 
     public object CreateHook(PyObject hookMethod, string pattern)
     {
         var pyHook = new PyloadedHook(scans, null, pattern, hookMethod);
-        PyHooks.Add(pyHook);
+        _pyHooks.Add(pyHook);
         return pyHook;
     }
 
     public object CreateHook(string id, PyObject hookMethod, PyObject onFail, string pattern)
     {
         var pyHook = new PyloadedHook(scans, id, pattern, hookMethod, onFail);
-        PyHooks.Add(pyHook);
+        _pyHooks.Add(pyHook);
         return pyHook;
     }
 
     public object CreateHook(PyObject hookMethod, PyObject onFail, string pattern)
     {
         var pyHook = new PyloadedHook(scans, null, pattern, hookMethod, onFail);
-        PyHooks.Add(pyHook);
+        _pyHooks.Add(pyHook);
         return pyHook;
     }
 
     public object CreateHook(string id, PyObject hookMethod, nint address)
     {
         var pyHook = new PyloadedHook(scans, id, address, hookMethod);
-        PyHooks.Add(pyHook);
+        _pyHooks.Add(pyHook);
         return pyHook;
     }
 
     public object CreateHook(PyObject hookMethod, nint address)
     {
         var pyHook = new PyloadedHook(scans, null, address, hookMethod);
-        PyHooks.Add(pyHook);
+        _pyHooks.Add(pyHook);
         return pyHook;
     }
 
     public object CreateHook(string id, PyObject hookMethod, PyObject onFail, nint address)
     {
         var pyHook = new PyloadedHook(scans, id, address, hookMethod, onFail);
-        PyHooks.Add(pyHook);
+        _pyHooks.Add(pyHook);
         return pyHook;
     }
 
     public object CreateHook(PyObject hookMethod, PyObject onFail, nint address)
     {
         var pyHook = new PyloadedHook(scans, null, address, hookMethod, onFail);
-        PyHooks.Add(pyHook);
+        _pyHooks.Add(pyHook);
         return pyHook;
+    }
+
+    internal void ClearHooks()
+    {
+        foreach (var pyHook in _pyHooks.Where(x => x.Hook?.IsHookEnabled == true))
+        {
+            pyHook.Disable?.Invoke();
+        }
     }
 }
