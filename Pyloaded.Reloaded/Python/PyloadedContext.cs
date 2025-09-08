@@ -1,13 +1,14 @@
 using Reloaded.Hooks.Definitions;
 using Reloaded.Mod.Interfaces;
+using RyoTune.Reloaded.Scans;
 
 namespace Pyloaded.Reloaded.Python;
 
-public class PyloadedContext(IModLoader modLoader, IReloadedHooks hooks)
+public class PyloadedContext(IModLoader modLoader, IScans scans)
 {
     public IModLoader ModLoader { get; } = modLoader;
 
-    public IReloadedHooks Hooks { get; } = hooks;
+    //public IReloadedHooks Hooks { get; } = hooks;
 
-    public PyloadedScans Scans { get; } = new();
+    public PyloadedScanHooks ScanHooks { get; } = new(scans);
 }
