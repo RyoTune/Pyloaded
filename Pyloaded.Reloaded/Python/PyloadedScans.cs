@@ -14,6 +14,8 @@ namespace Pyloaded.Reloaded.Python;
 [SuppressMessage("Interoperability", "CA1416:Validate platform compatibility")]
 public class PyloadedScans : IScans
 {
+    private static readonly Dictionary<string, nint> CachedResults = [];
+    
     private readonly IReloadedHooks _hooks;
     private readonly Scanner _scanner;
     private bool _isPostInit;
@@ -30,18 +32,21 @@ public class PyloadedScans : IScans
 
     public void AddScan(string id, string? pattern, Action<nint> onSuccess, Action? onFail = null)
     {
+        if (string.IsNullOrEmpty(pattern)) return;
+        
         if (!_isPostInit)
         {
-            Project.Scans.AddScan(id, pattern, onSuccess, onFail);
+            Project.Scans.AddScan(id, pattern, result =>
+            {
+                CachedResults[pattern] = result;
+                onSuccess(result);
+            }, onFail);
             return;
         }
-        
-        var ofs = _scanner.FindPattern(pattern);
-        if (ofs.Found)
+
+        if (TryGetScanOrCachedResult(pattern, out var result))
         {
-            var result = Utilities.BaseAddress + ofs.Offset;
             Log.Information($"'{id}' found at: 0x{result:X}");
-            
             onSuccess(result);
         }
         else if (onFail != null)
@@ -56,9 +61,15 @@ public class PyloadedScans : IScans
 
     public void AddScanHook(string id, string? pattern, Action<nint, IReloadedHooks> onSuccess, Action? onFail = null)
     {
+        if (string.IsNullOrEmpty(pattern)) return;
+        
         if (!_isPostInit)
         {
-            Project.Scans.AddScanHook(id, pattern, onSuccess, onFail);
+            Project.Scans.AddScanHook(id, pattern, (results, hooks) =>
+            {
+                CachedResults[pattern] = results;
+                onSuccess(results, hooks);
+            }, onFail);
             return;
         }
         
@@ -86,6 +97,18 @@ public class PyloadedScans : IScans
         }
         
         onSuccess(defaultResult, _hooks);
+    }
+
+    private bool TryGetScanOrCachedResult(string pattern, out nint result)
+    {
+        if (CachedResults.TryGetValue(pattern, out result)) return true;
+        
+        var ofs = _scanner.FindPattern(pattern);
+        if (!ofs.Found) return false;
+        
+        result = Utilities.BaseAddress + ofs.Offset;
+        CachedResults[pattern] = result;
+        return true;
     }
 
     #region Not suitable for hot reload.
