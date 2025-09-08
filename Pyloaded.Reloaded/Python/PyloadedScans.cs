@@ -1,88 +1,102 @@
-using Python.Runtime;
+using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
+using Reloaded.Hooks.Definitions;
+using Reloaded.Memory.Sigscan;
+using Reloaded.Mod.Interfaces;
+using RyoTune.Reloaded.Scans;
 
 namespace Pyloaded.Reloaded.Python;
 
-public class PyloadedScans
+/// <summary>
+/// Pyloaded <see cref="IScans"/> implementation which swaps to manual scanner after init,
+/// allowing for real-time scans and hooks with Hot Reload.
+/// </summary>
+[SuppressMessage("Interoperability", "CA1416:Validate platform compatibility")]
+public class PyloadedScans : IScans
 {
-    // ReSharper disable once CollectionNeverQueried.Local
-    // Need to store hook references so they don't get GC'd.
-    private static readonly List<object> PyHooks = [];
+    private readonly IReloadedHooks _hooks;
+    private readonly Scanner _scanner;
+    private bool _isPostInit;
 
-    public static void AddScan(string id, PyObject onSuccess, string pattern)
+    public PyloadedScans(IModLoader modLoader, IReloadedHooks hooks)
     {
-        Project.Scans.AddScan(id, pattern, result =>
+        _hooks = hooks;
+        
+        var proc = Process.GetCurrentProcess();
+        _scanner = new(proc, proc.MainModule);
+
+        modLoader.OnModLoaderInitialized += () => _isPostInit = true;
+    }
+
+    public void AddScan(string id, string? pattern, Action<nint> onSuccess, Action? onFail = null)
+    {
+        if (!_isPostInit)
         {
-            using (Py.GIL())
-                onSuccess.Invoke(result.ToPython());
-        });
-    }
-
-    public static void AddScan(string id, PyObject onSuccess, PyObject onFail, string pattern)
-    {
-        Project.Scans.AddScan(id, pattern, result =>
+            Project.Scans.AddScan(id, pattern, onSuccess, onFail);
+            return;
+        }
+        
+        var ofs = _scanner.FindPattern(pattern);
+        if (ofs.Found)
         {
-            using (Py.GIL())
-                onSuccess.Invoke(result.ToPython());
-        }, () =>
+            var result = Utilities.BaseAddress + ofs.Offset;
+            Log.Information($"'{id}' found at: 0x{result:X}");
+            
+            onSuccess(result);
+        }
+        else if (onFail != null)
         {
-            using (Py.GIL())
-                onFail.Invoke();
-        });
+            onFail();
+        }
+        else
+        {
+            Log.Error($"Failed to find pattern for '{id}'.\nPattern: {pattern}");
+        }
     }
 
-    public static object CreateHook(string id, PyObject hookMethod, string pattern)
+    public void AddScanHook(string id, string? pattern, Action<nint, IReloadedHooks> onSuccess, Action? onFail = null)
     {
-        var pyHook = new PyloadedHook(id, pattern, hookMethod);
-        PyHooks.Add(pyHook);
-        return pyHook;
+        if (!_isPostInit)
+        {
+            Project.Scans.AddScanHook(id, pattern, onSuccess, onFail);
+            return;
+        }
+        
+        AddScan(id, pattern, result => onSuccess(result, _hooks), onFail);
     }
 
-    public static object CreateHook(PyObject hookMethod, string pattern)
+    public void AddScan(string id, nint defaultResult, Action<nint> onSuccess, Action? onFail = null)
     {
-        var pyHook = new PyloadedHook(null, pattern, hookMethod);
-        PyHooks.Add(pyHook);
-        return pyHook;
+        if (!_isPostInit)
+        {
+            Project.Scans.AddScan(id, defaultResult, onSuccess, onFail);
+            return;
+        }
+        
+        onSuccess(defaultResult);
     }
 
-    public static object CreateHook(string id, PyObject hookMethod, PyObject onFail, string pattern)
+    public void AddScanHook(string id, nint defaultResult, Action<nint, IReloadedHooks> onSuccess,
+        Action? onFail = null)
     {
-        var pyHook = new PyloadedHook(id, pattern, hookMethod, onFail);
-        PyHooks.Add(pyHook);
-        return pyHook;
+        if (!_isPostInit)
+        {
+            Project.Scans.AddScanHook(id, defaultResult, onSuccess, onFail);
+            return;
+        }
+        
+        onSuccess(defaultResult, _hooks);
     }
 
-    public static object CreateHook(PyObject hookMethod, PyObject onFail, string pattern)
-    {
-        var pyHook = new PyloadedHook(null, pattern, hookMethod, onFail);
-        PyHooks.Add(pyHook);
-        return pyHook;
-    }
+    #region Not suitable for hot reload.
+    
+    public void AddScan(string id, Action<nint> onSuccess, Action? onFail = null)
+        => throw new NotImplementedException("Patternless and result-less scans is unsupported.");
 
-    public static object CreateHook(string id, PyObject hookMethod, nint address)
-    {
-        var pyHook = new PyloadedHook(id, address, hookMethod);
-        PyHooks.Add(pyHook);
-        return pyHook;
-    }
+    public void AddScanHook(string id, Action<nint, IReloadedHooks> onSuccess, Action? onFail = null)
+        => throw new NotImplementedException("Patternless and result-less scans is unsupported.");
 
-    public static object CreateHook(PyObject hookMethod, nint address)
-    {
-        var pyHook = new PyloadedHook(null, address, hookMethod);
-        PyHooks.Add(pyHook);
-        return pyHook;
-    }
+    public void AddListener(string id, Action<nint> onSuccess, Action? onFail = null) => AddScan(id, onSuccess, onFail);
 
-    public static object CreateHook(string id, PyObject hookMethod, PyObject onFail, nint address)
-    {
-        var pyHook = new PyloadedHook(id, address, hookMethod, onFail);
-        PyHooks.Add(pyHook);
-        return pyHook;
-    }
-
-    public static object CreateHook(PyObject hookMethod, PyObject onFail, nint address)
-    {
-        var pyHook = new PyloadedHook(null, address, hookMethod, onFail);
-        PyHooks.Add(pyHook);
-        return pyHook;
-    }
+    #endregion
 }
