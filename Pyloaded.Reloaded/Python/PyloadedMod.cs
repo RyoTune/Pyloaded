@@ -1,6 +1,7 @@
 using System.Reactive.Concurrency;
 using Python.Runtime;
 using Reloaded.Mod.Interfaces;
+using RyoTune.Reloaded.Scans;
 
 namespace Pyloaded.Reloaded.Python;
 
@@ -13,24 +14,22 @@ public class PyloadedMod
     private readonly PyloadedLogger _pyLog;
     private readonly PyModule _module;
     private readonly RxFileWatcher _pyModFileWatcher;
+    private readonly PyloadedContext _pyCtx;
 
-    public PyloadedMod(PyloadedContext pyCtx, ILogger log, string name, string pyModFile)
+    public PyloadedMod(IModLoader modLoader, IScans scans, ILogger log, string name, string pyModFile)
     {
         _name = name;
         _pyModFile = pyModFile;
         _pyLog = new(log, name);
 
         _pyModFileWatcher = new(pyModFile, Scheduler);
-        _pyModFileWatcher.Changed += _ =>
-        {
-            Log.Information($"Hot Reload || Mod: {name}");
-            RunMod();
-        };
+        _pyModFileWatcher.Changed += _ => ReloadMod();
 
+        _pyCtx = new(modLoader, scans);
         using (Py.GIL())
         {
             _module = Py.CreateScope();
-            _module.Set("Pyloaded", pyCtx);
+            _module.Set("Pyloaded", _pyCtx);
             _module.Set("Log", _pyLog);
             _module.Set("print", (object? obj) => _pyLog.Print(obj));
         }
@@ -54,5 +53,16 @@ public class PyloadedMod
             if (!pyMod.IsNone()) Log.Information($"Loaded: {_name}");
             else Log.Error($"Error: {_name}");
         }
+    }
+
+    private void ReloadMod()
+    {
+        Log.Information($"Hot Reload || Mod: {_name} || Reloading mod...");
+        
+        Log.Debug($"Hot Reload || Mod: {_name} || Disabling existing hooks.");
+        _pyCtx.ScanHooks.ClearHooks();
+        
+        Log.Debug($"Hot Reload || Mod: {_name} || Running mod.");
+        RunMod();
     }
 }

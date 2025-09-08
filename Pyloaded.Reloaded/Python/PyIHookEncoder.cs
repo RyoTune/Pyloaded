@@ -9,5 +9,5 @@ public class PyIHookEncoder : IPyObjectEncoder
     
     public bool CanEncode(Type type) => type == typeof(IHook);
 
-    public PyObject? TryEncode(object value) => value.ToPython();
+    public PyObject TryEncode(object value) => value.ToPython();
 }

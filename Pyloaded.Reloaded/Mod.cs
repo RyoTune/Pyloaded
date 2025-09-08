@@ -21,7 +21,7 @@ public class Mod : ModBase
     private Config _config;
     private readonly IModConfig _modConfig;
     private readonly List<PyloadedMod> _pyMods = [];
-    private readonly PyloadedContext _pyCtx;
+    private readonly PyloadedScans _scans;
 
     public Mod(ModContext context)
     {
@@ -38,9 +38,7 @@ public class Mod : ModBase
         Log.LogLevel = _config.LogLevel;
 
         var modDir = _modLoader.GetDirectoryForModId(_modConfig.ModId);
-        var pyloadedScans = new PyloadedScans(_modLoader, _hooks!);
-        
-        _pyCtx = new(_modLoader, pyloadedScans);
+        _scans = new(_modLoader, _hooks!);
         
         Runtime.PythonDLL = Path.Join(modDir, "python", "python313.dll");
         PythonEngine.Initialize();
@@ -53,6 +51,9 @@ public class Mod : ModBase
         // nuint conversions.
         PyObjectConversions.RegisterDecoder(PyNuintCodec.Instance);
         PyObjectConversions.RegisterEncoder(PyNuintCodec.Instance);
+        
+        // Encode IHook as an object so all properties are accessible.
+        PyObjectConversions.RegisterEncoder(PyIHookEncoder.Instance);
         
         _modLoader.ModLoaded += ModLoaded;
     }
@@ -67,7 +68,7 @@ public class Mod : ModBase
         var pyModFile = Path.Join(pyloadedDir, "mod.py");
         if (!File.Exists(pyModFile)) return;
         
-        _pyMods.Add(new(_pyCtx, _log, modConfig.ModName, pyModFile));
+        _pyMods.Add(new(_modLoader, _scans, _log, modConfig.ModName, pyModFile));
     }
 
     #region Standard Overrides

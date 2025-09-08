@@ -44,10 +44,10 @@ public class PyloadedScans : IScans
             return;
         }
 
-        if (TryGetScanOrCachedResult(pattern, out var result))
+        if (TryGetScanOrCachedResult(pattern, out var localResult))
         {
-            Log.Information($"'{id}' found at: 0x{result:X}");
-            onSuccess(result);
+            Log.Information($"'{id}' found at: 0x{localResult:X}");
+            onSuccess(localResult);
         }
         else if (onFail != null)
         {
