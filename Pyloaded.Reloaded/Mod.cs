@@ -1,10 +1,13 @@
 ﻿#if DEBUG
 using System.Diagnostics;
 #endif
-using Reloaded.Hooks.ReloadedII.Interfaces;
 using Reloaded.Mod.Interfaces;
 using Pyloaded.Reloaded.Template;
 using Pyloaded.Reloaded.Configuration;
+using Pyloaded.Reloaded.Python;
+using Python.Runtime;
+using Reloaded.Hooks.Definitions;
+using Reloaded.Mod.Interfaces.Internal;
 
 namespace Pyloaded.Reloaded;
 
@@ -17,6 +20,8 @@ public class Mod : ModBase
 
     private Config _config;
     private readonly IModConfig _modConfig;
+    private readonly List<PyloadedMod> _pyMods = [];
+    private readonly PyloadedContext _pyCtx;
 
     public Mod(ModContext context)
     {
@@ -31,6 +36,36 @@ public class Mod : ModBase
 #endif
         Project.Initialize(_modConfig, _modLoader, _log, true);
         Log.LogLevel = _config.LogLevel;
+        
+        _pyCtx = new(_modLoader, _hooks!);
+        var modDir = _modLoader.GetDirectoryForModId(_modConfig.ModId);
+        
+        Runtime.PythonDLL = Path.Join(modDir, "python", "python313.dll");
+        PythonEngine.Initialize();
+        PythonEngine.BeginAllowThreads();
+
+        // nint conversions.
+        PyObjectConversions.RegisterDecoder(PyNintCodec.Instance);
+        PyObjectConversions.RegisterEncoder(PyNintCodec.Instance);
+        
+        // nuint conversions.
+        PyObjectConversions.RegisterDecoder(PyNuintCodec.Instance);
+        PyObjectConversions.RegisterEncoder(PyNuintCodec.Instance);
+        
+        _modLoader.ModLoaded += ModLoaded;
+    }
+
+    private void ModLoaded(IModV1 mod, IModConfigV1 modConfig)
+    {
+        if (!Project.IsModDependent(modConfig)) return;
+
+        var pyloadedDir = Path.Join(_modLoader.GetDirectoryForModId(modConfig.ModId), "pyloaded");
+        if (!Directory.Exists(pyloadedDir)) return;
+
+        var pyModFile = Path.Join(pyloadedDir, "mod.py");
+        if (!File.Exists(pyModFile)) return;
+        
+        _pyMods.Add(new(_pyCtx, _log, modConfig.ModName, pyModFile));
     }
 
     #region Standard Overrides
