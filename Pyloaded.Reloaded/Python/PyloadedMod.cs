@@ -39,30 +39,37 @@ public class PyloadedMod
 
     private void RunMod()
     {
-        var pyModSource = File.ReadAllText(_pyModFile);
-        using (Py.GIL())
+        try
         {
-            Log.Debug($"Compiling: {_name}");
-            using var pyModScript = PythonEngine.Compile(pyModSource, _pyModFile);
-        
-            Log.Debug($"Running: {_name}");
-            _module.Execute(pyModScript)
-                .Dispose();
-        
-            using var pyMod = _module.GetAttr("Mod").Invoke();
-            if (!pyMod.IsNone()) Log.Information($"Loaded: {_name}");
-            else Log.Error($"Error: {_name}");
+            var pyModSource = File.ReadAllText(_pyModFile);
+            using (Py.GIL())
+            {
+                Log.Debug($"Compiling: {_name}");
+                using var pyModScript = PythonEngine.Compile(pyModSource, _pyModFile);
+
+                Log.Debug($"Running: {_name}");
+                _module.Execute(pyModScript)
+                    .Dispose();
+
+                using var pyMod = _module.GetAttr("Mod").Invoke();
+                if (!pyMod.IsNone()) Log.Information($"Loaded: {_name}");
+                else Log.Error($"Error: {_name}");
+            }
+        }
+        catch (Exception ex)
+        {
+            Log.Error(ex, $"Failed to run mod '{_name}'.");
         }
     }
 
     private void ReloadMod()
     {
-        Log.Information($"Hot Reload || Mod: {_name} || Reloading mod...");
+        Log.Information($"Hot Reload: Reloading mod '{_name}'...");
         
-        Log.Debug($"Hot Reload || Mod: {_name} || Disabling existing hooks.");
+        Log.Debug("Hot Reload: Disabling existing hooks.");
         _pyCtx.ScanHooks.ClearHooks();
         
-        Log.Debug($"Hot Reload || Mod: {_name} || Running mod.");
+        Log.Debug("Hot Reload: Running mod.");
         RunMod();
     }
 }
