@@ -25,6 +25,8 @@ public class PyloadedLogger(ILogger log, string name)
         [LogLevel.Error] = Color.Red
     };
 
+    public void SetColor(string hexColor) => _levelColors[LogLevel.Information] = ColorTranslator.FromHtml(hexColor);
+
     public void Print(object? obj) => Information($"{obj}");
     
     public void Verbose(string message)
