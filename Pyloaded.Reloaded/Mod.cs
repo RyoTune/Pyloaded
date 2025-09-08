@@ -36,9 +36,11 @@ public class Mod : ModBase
 #endif
         Project.Initialize(_modConfig, _modLoader, _log, true);
         Log.LogLevel = _config.LogLevel;
-        
-        _pyCtx = new(_modLoader, _hooks!);
+
         var modDir = _modLoader.GetDirectoryForModId(_modConfig.ModId);
+        var pyloadedScans = new PyloadedScans(_modLoader, _hooks!);
+        
+        _pyCtx = new(_modLoader, pyloadedScans);
         
         Runtime.PythonDLL = Path.Join(modDir, "python", "python313.dll");
         PythonEngine.Initialize();
