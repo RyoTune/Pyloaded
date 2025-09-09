@@ -113,6 +113,7 @@ The level can be changed in **Pyloaded's** Reloaded config.
 For working with pointers, **Pyloaded** gives access `Reloaded.Memory`'s `Ptr<T>` type.
 
 **`Pyloaded.CreatePtr[T](address)`**
+
 *T* - type - The type of pointer.
 *address* - number - The address of the pointer.
 
