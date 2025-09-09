@@ -1,4 +1,4 @@
-using Reloaded.Hooks.Definitions;
+using Reloaded.Memory.Pointers;
 using Reloaded.Mod.Interfaces;
 using RyoTune.Reloaded.Scans;
 
@@ -11,4 +11,6 @@ public class PyloadedContext(IModLoader modLoader, IScans scans)
     //public IReloadedHooks Hooks { get; } = hooks;
 
     public PyloadedScanHooks ScanHooks { get; } = new(scans);
+
+    public static unsafe Ptr<T> CreatePtr<T>(nint address) where T : unmanaged => new((T*)address);
 }
