@@ -2,7 +2,7 @@
   "ModId": "Pyloaded.Reloaded",
   "ModName": "Pyloaded",
   "ModAuthor": "RyoTune",
-  "ModVersion": "1.1.1",
+  "ModVersion": "1.1.2",
   "ModDescription": "Create Reloaded code mods with Python.",
   "ModDll": "Pyloaded.Reloaded.dll",
   "ModIcon": "Preview.png",
