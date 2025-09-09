@@ -14,7 +14,7 @@ namespace Pyloaded.Reloaded;
 public class Mod : ModBase
 {
     private readonly IModLoader _modLoader;
-    private readonly IReloadedHooks? _hooks;
+    private readonly IReloadedHooks _hooks;
     private readonly ILogger _log;
     private readonly IMod _owner;
 
@@ -27,7 +27,7 @@ public class Mod : ModBase
     public Mod(ModContext context)
     {
         _modLoader = context.ModLoader;
-        _hooks = context.Hooks;
+        _hooks = context.Hooks!;
         _log = context.Logger;
         _owner = context.Owner;
         _config = context.Configuration;
@@ -73,7 +73,7 @@ public class Mod : ModBase
         var pyModFile = Path.Join(pyloadedDir, "mod.py");
         if (!File.Exists(pyModFile)) return;
         
-        _pyMods.Add(new(_modLoader, _scans, _log, modConfig.ModName, pyModFile, _pyHelperScripts));
+        _pyMods.Add(new(_modLoader, _hooks, _scans, _log, modConfig.ModId, pyModFile, _pyHelperScripts));
     }
 
     #region Standard Overrides
