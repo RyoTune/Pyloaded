@@ -133,6 +133,9 @@ Pyloaded.ModLoader
 Pyloaded.ReloadedHooks
 ```
 
+### Hot Reload
+**Pyloaded** mods support real-time editing! Build or edit your mod without needing to restart the game, allowing you to quickly test ideas or fix bugs.
+
 ## Special Thanks
 - **Sewer56** - Reloaded and the countless accompanying libraries!
 - **Python Software Foundation** - Python! Duh!
