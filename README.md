@@ -33,10 +33,10 @@ Using this, **Pyloaded** adds some tools of its own to make common modding tasks
 The basic, but versatile, pattern scan. 
 
 **`Pyloaded.ScanHooks.AddScan(scanId, onSuccess[, onFail], pattern)`**
-- *scanId* - string - Scan ID, used for replacing patterns externally.
-- onSuccess - function - Callback function which is given the scan result.
-- *onFail* - function - Optional callback function to run if the scan failed. Mainly used to hide the default error message that shows for a failed scan.
-- *pattern* - string - The hex pattern to scan for.
+- *scanId* - String - Scan ID, used for replacing patterns externally.
+- onSuccess - Function - Callback function which is given the scan result.
+- *onFail* - Function - Optional callback function to run if the scan failed. Mainly used to hide the default error message that shows for a failed scan.
+- *pattern* - String - The hex pattern to scan for.
 
 **Example**
 ```
@@ -51,17 +51,17 @@ Now you're modding ✨! If you don't already understand function hooks, I'd reco
 
 From there, you can do whatever you want: replace the code completely, edit it a bit, disable it, or just log some data before running the original code.
 
-**`Pyloaded.ScanHooks.CreateHook([scanId, ]hookFunc[, onFail], pattern)`**
-- *scanId* - string - Optional Scan ID, used for replacing patterns externally. If no ID is given, then the name of `hookfunction` will be used as the ID.
-- *hookFunc* - function - The function the hook will run instead of the original function.
-- *onFail* - function - Optional callback function to run if the scan failed. Mainly used to hide the default error message that shows for a failed scan.
-- *pattern* - string - The hex pattern of the function to hook.
+**`Pyloaded.ScanHooks.CreateHook([scanId,] hookFunc[, onFail], pattern)`**
+- *scanId* - String - Optional Scan ID, used for replacing patterns externally. If no ID is given, then the name of `hookfunction` will be used as the ID.
+- *hookFunc* - Function - The function the hook will run instead of the original function.
+- *onFail* - Function - Optional callback function to run if the scan failed. Mainly used to hide the default error message that shows for a failed scan.
+- *pattern* - String - The hex pattern of the function to hook.
 
 **`Pyloaded.ScanHooks.CreateHook([scanId, ]hookFunc[, onFail], address)`**
-- *scanId* - string - Optional Scan ID, used for replacing patterns externally. If no ID is given, then the name of `hookfunction` will be used as the ID.
-- *hookFunc* - function - The function the hook will run instead of the original function.
-- *onFail* - function - Optional callback function to run if the scan failed. Mainly used to hide the default error message that shows for a failed scan.
-- *address* - number - The direct address of the function to hook.
+- *scanId* - String - Optional Scan ID, used for replacing patterns externally. If no ID is given, then the name of `hookfunction` will be used as the ID.
+- *hookFunc* - Function - The function the hook will run instead of the original function.
+- *onFail* - Function - Optional callback function to run if the scan failed. Mainly used to hide the default error message that shows for a failed scan.
+- *address* - Integer - The direct address of the function to hook.
 
 **Example (Persona 4 Golden)**
 ```
@@ -84,7 +84,7 @@ class Mod:
 ___
 **Creating Your Function**
 
-When making your function, it's **strongly recommended** to add the correct type to each parameter like in the example `a: long, b: long, id: int`.
+When making your function, it's **strongly recommended** to add the correct type to each parameter like in the example `a: long, b: long, cueId: int`.
 
 By default, all parameters are treated as `nint`, which in technical terms means it will pull the value of the full register. This puts you at risk of getting junk data when the original function normally wouldn't.
 
@@ -138,4 +138,5 @@ Pyloaded.ReloadedHooks
 
 ## Special Thanks
 - **Sewer56** - Reloaded and the countless accompanying libraries!
+- **.NET Foundation** - Python.NET!
 - **Python Software Foundation** - Python! Duh!
