@@ -33,66 +33,66 @@ public class PyloadedScanHooks(IScans scans, string modId)
         });
     }
 
-    public object CreateHook(string scanId, PyObject hookMethod, string pattern)
+    public object CreateHook(string scanId, PyObject hookFunc, string pattern)
     {
         scanId = $"{modId}+{scanId}";
-        var pyHook = new PyloadedHook(scans, scanId, pattern, hookMethod);
+        var pyHook = new PyloadedHook(scans, scanId, pattern, hookFunc);
         _pyHooks.Add(pyHook);
         return pyHook;
     }
 
-    public object CreateHook(PyObject hookMethod, string pattern)
+    public object CreateHook(PyObject hookFunc, string pattern)
     {
-        var id = $"{modId}+{GetPyName(hookMethod)}";
-        var pyHook = new PyloadedHook(scans, id, pattern, hookMethod);
+        var id = $"{modId}+{GetPyName(hookFunc)}";
+        var pyHook = new PyloadedHook(scans, id, pattern, hookFunc);
         _pyHooks.Add(pyHook);
         return pyHook;
     }
 
-    public object CreateHook(string scanId, PyObject hookMethod, PyObject onFail, string pattern)
-    {
-        scanId = $"{modId}+{scanId}";
-        var pyHook = new PyloadedHook(scans, scanId, pattern, hookMethod, onFail);
-        _pyHooks.Add(pyHook);
-        return pyHook;
-    }
-
-    public object CreateHook(PyObject hookMethod, PyObject onFail, string pattern)
-    {
-        var id = $"{modId}+{GetPyName(hookMethod)}";
-        var pyHook = new PyloadedHook(scans, id, pattern, hookMethod, onFail);
-        _pyHooks.Add(pyHook);
-        return pyHook;
-    }
-
-    public object CreateHook(string scanId, PyObject hookMethod, nint address)
+    public object CreateHook(string scanId, PyObject hookFunc, PyObject onFail, string pattern)
     {
         scanId = $"{modId}+{scanId}";
-        var pyHook = new PyloadedHook(scans, scanId, address, hookMethod);
+        var pyHook = new PyloadedHook(scans, scanId, pattern, hookFunc, onFail);
         _pyHooks.Add(pyHook);
         return pyHook;
     }
 
-    public object CreateHook(PyObject hookMethod, nint address)
+    public object CreateHook(PyObject hookFunc, PyObject onFail, string pattern)
     {
-        var id = $"{modId}+{GetPyName(hookMethod)}";
-        var pyHook = new PyloadedHook(scans, id, address, hookMethod);
+        var id = $"{modId}+{GetPyName(hookFunc)}";
+        var pyHook = new PyloadedHook(scans, id, pattern, hookFunc, onFail);
         _pyHooks.Add(pyHook);
         return pyHook;
     }
 
-    public object CreateHook(string scanId, PyObject hookMethod, PyObject onFail, nint address)
+    public object CreateHook(string scanId, PyObject hookFunc, nint address)
     {
         scanId = $"{modId}+{scanId}";
-        var pyHook = new PyloadedHook(scans, scanId, address, hookMethod, onFail);
+        var pyHook = new PyloadedHook(scans, scanId, address, hookFunc);
         _pyHooks.Add(pyHook);
         return pyHook;
     }
 
-    public object CreateHook(PyObject hookMethod, PyObject onFail, nint address)
+    public object CreateHook(PyObject hookFunc, nint address)
     {
-        var id = $"{modId}+{GetPyName(hookMethod)}";
-        var pyHook = new PyloadedHook(scans, id, address, hookMethod, onFail);
+        var id = $"{modId}+{GetPyName(hookFunc)}";
+        var pyHook = new PyloadedHook(scans, id, address, hookFunc);
+        _pyHooks.Add(pyHook);
+        return pyHook;
+    }
+
+    public object CreateHook(string scanId, PyObject hookFunc, PyObject onFail, nint address)
+    {
+        scanId = $"{modId}+{scanId}";
+        var pyHook = new PyloadedHook(scans, scanId, address, hookFunc, onFail);
+        _pyHooks.Add(pyHook);
+        return pyHook;
+    }
+
+    public object CreateHook(PyObject hookFunc, PyObject onFail, nint address)
+    {
+        var id = $"{modId}+{GetPyName(hookFunc)}";
+        var pyHook = new PyloadedHook(scans, id, address, hookFunc, onFail);
         _pyHooks.Add(pyHook);
         return pyHook;
     }
