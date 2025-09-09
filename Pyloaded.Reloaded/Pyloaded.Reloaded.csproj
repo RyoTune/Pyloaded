@@ -33,6 +33,9 @@
         <None Remove="BuildLinked.ps1"/>
         <None Remove="Reloaded.Trimming.targets"/>
         <None Remove="Reloaded.Checks.targets"/>
+        <None Update="Python\Lib\pyloadedtypes.py">
+          <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        </None>
     </ItemGroup>
 
     <ItemGroup>

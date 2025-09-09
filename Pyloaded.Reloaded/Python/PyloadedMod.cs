@@ -8,6 +8,7 @@ namespace Pyloaded.Reloaded.Python;
 public class PyloadedMod
 {
     private static readonly EventLoopScheduler Scheduler = new();
+    private static PyObject? _pyloadedTypes;
     
     private readonly string _name;
     private readonly string _pyModFile;
@@ -32,6 +33,11 @@ public class PyloadedMod
             _module.Set("Pyloaded", _pyCtx);
             _module.Set("Log", _pyLog);
             _module.Set("print", (object? obj) => _pyLog.Print(obj));
+
+            if (_pyloadedTypes == null)
+                _pyloadedTypes = PyModule.Import("pyloadedtypes");
+            
+            _module.ImportAll(_pyloadedTypes.GetAttr("types_dict").As<PyDict>());
         }
         
         RunMod();
