@@ -52,13 +52,13 @@ Now you're modding ✨! If you don't already understand function hooks, I'd reco
 From there, you can do whatever you want: replace the code completely, edit it a bit, disable it, or just log some data before running the original code.
 
 **`Pyloaded.ScanHooks.CreateHook([scanId,] hookFunc[, onFail], pattern)`**
-- *scanId* - String - Optional Scan ID, used for replacing patterns externally. If no ID is given, then the name of `hookfunction` will be used as the ID.
+- *scanId* - String - Optional Scan ID, used for replacing patterns externally. If no ID is given, then the name of `hookFunc` will be used as the ID.
 - *hookFunc* - Function - The function the hook will run instead of the original function.
 - *onFail* - Function - Optional callback function to run if the scan failed. Mainly used to hide the default error message that shows for a failed scan.
 - *pattern* - String - The hex pattern of the function to hook.
 
 **`Pyloaded.ScanHooks.CreateHook([scanId, ]hookFunc[, onFail], address)`**
-- *scanId* - String - Optional Scan ID, used for replacing patterns externally. If no ID is given, then the name of `hookfunction` will be used as the ID.
+- *scanId* - String - Optional Scan ID, used for replacing patterns externally. If no ID is given, then the name of `hookFunc` will be used as the ID.
 - *hookFunc* - Function - The function the hook will run instead of the original function.
 - *onFail* - Function - Optional callback function to run if the scan failed. Mainly used to hide the default error message that shows for a failed scan.
 - *address* - Integer - The direct address of the function to hook.
