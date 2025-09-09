@@ -114,8 +114,8 @@ For working with pointers, **Pyloaded** gives access `Reloaded.Memory`'s `Ptr<T>
 
 **`Pyloaded.CreatePtr[T](address)`**
 
-- *T* - type - The type of pointer.
-- *address* - number - The address of the pointer.
+- *T* - Type - The type of pointer.
+- *address* - Integer - The address of the pointer.
 
 **Example**
 ```
