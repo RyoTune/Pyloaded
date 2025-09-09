@@ -8,7 +8,6 @@ namespace Pyloaded.Reloaded.Python;
 public class PyloadedMod
 {
     private static readonly EventLoopScheduler Scheduler = new();
-    private static PyObject? _pyloadedTypes;
     
     private readonly string _name;
     private readonly string _pyModFile;
@@ -17,7 +16,7 @@ public class PyloadedMod
     private readonly RxFileWatcher _pyModFileWatcher;
     private readonly PyloadedContext _pyCtx;
 
-    public PyloadedMod(IModLoader modLoader, IScans scans, ILogger log, string name, string pyModFile)
+    public PyloadedMod(IModLoader modLoader, IScans scans, ILogger log, string name, string pyModFile, string[] helperScripts)
     {
         _name = name;
         _pyModFile = pyModFile;
@@ -34,10 +33,7 @@ public class PyloadedMod
             _module.Set("Log", _pyLog);
             _module.Set("print", (object? obj) => _pyLog.Print(obj));
 
-            if (_pyloadedTypes == null)
-                _pyloadedTypes = PyModule.Import("pyloadedtypes");
-            
-            _module.ImportAll(_pyloadedTypes.GetAttr("types_dict").As<PyDict>());
+            foreach (var script in helperScripts) _module.Exec(script);
         }
         
         RunMod();

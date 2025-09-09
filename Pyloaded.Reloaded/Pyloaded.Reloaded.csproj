@@ -33,7 +33,7 @@
         <None Remove="BuildLinked.ps1"/>
         <None Remove="Reloaded.Trimming.targets"/>
         <None Remove="Reloaded.Checks.targets"/>
-        <None Update="Python\Lib\pyloadedtypes.py">
+        <None Update="Python\PyloadedHelpers\CSharpAliases.py">
           <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
         </None>
     </ItemGroup>
@@ -51,6 +51,7 @@
     <ItemGroup>
         <PackageReference Include="python" Version="3.13.7"/>
         <PackageReference Include="pythonnet" Version="3.0.5" />
+        <PackageReference Include="Reloaded.Memory" Version="9.4.2" />
         <PackageReference Include="Reloaded.Memory.Sigscan" Version="3.1.9" />
         <PackageReference Include="Reloaded.Mod.Interfaces" Version="2.4.0" ExcludeAssets="runtime"/>
         <PackageReference Include="Reloaded.SharedLib.Hooks" Version="1.9.0"/>

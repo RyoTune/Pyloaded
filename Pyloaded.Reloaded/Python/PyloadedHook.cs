@@ -123,7 +123,7 @@ internal class PyloadedHook(IScans scans)
             var targetType = methodInfo.Params[i].Type;
             
             // Encode arg to Python, marshalling first to target type if parameter has type info.
-            pyArgs.Add(targetType != null ? ConvertUnchecked(currArg, targetType).ToPython() : currArg.ToPython());
+            pyArgs.Add(targetType != null ? PyloadedUtils.ConvertUnchecked(currArg, targetType).ToPython() : currArg.ToPython());
         }
 
         return pyArgs.ToArray();
@@ -131,6 +131,9 @@ internal class PyloadedHook(IScans scans)
 
     private static MethodInfo GetMethodInfo(PyObject method)
     {
+        const string clrTypeName = "CLRMetatype";
+        const string intTypeName = "int";
+        
         // Import once and save for all hooks.
         if (_inspect == null) _inspect = Py.Import("inspect");
         
@@ -138,64 +141,36 @@ internal class PyloadedHook(IScans scans)
         var methodName = method.GetAttr("__name__").As<string>();
         
         // Get method parameters, including type info if available.
+        var methodParams = new List<MethodParamInfo>();
+        
         using var sig = _inspect.InvokeMethod("signature", method);
         using var sigParams = sig.GetAttr("parameters");
-
-        var methodParams = new List<MethodParamInfo>();
         using var sigParamsIter = sigParams.GetIterator();
+        
         while (sigParamsIter.MoveNext())
         {
             var currParam = sigParams[sigParamsIter.Current];
             var currParamName = sigParamsIter.Current.As<string>();
-            var currParamTypeName = currParam.GetAttr("annotation").GetAttr("__name__").As<string>();
-            
-            if (TypesMap.TryGetValue(currParamTypeName, out var currParamType))
+
+            var anno = currParam.GetAttr("annotation");
+            var currParamTypeName = anno.GetAttr("__name__").As<string>();
+
+            if (currParamTypeName == intTypeName || anno.GetPythonType().Name == clrTypeName)
             {
-                Log.Verbose($"{nameof(GetMethodInfo)} || Method: {methodName} || Added param '{currParamName}' with C# type '{currParamTypeName}'.");
-                methodParams.Add(new(currParamName, currParamType));
+                var superType = currParamName == intTypeName ? typeof(int) : anno.As<Type>();
+                methodParams.Add(new(currParamName, superType));
+                
+                Log.Verbose($"{nameof(GetMethodInfo)} || Method: {methodName} || Registered param '{currParamName}' as CLR type '{superType.Name}'.");
             }
             else
             {
-                Log.Verbose($"{nameof(GetMethodInfo)} || Method: {methodName} || Added param '{currParamName}'.");
                 methodParams.Add(new(currParamName, null));
+                Log.Verbose($"{nameof(GetMethodInfo)} || Method: {methodName} || Registered param '{currParamName}'.");
             }
         }
         
         return new(methodName, methodParams.ToArray());
     }
-    
-    private static object ConvertUnchecked(nint value, Type targetType)
-    {
-        if (targetType == typeof(sbyte)) return unchecked((sbyte)value);
-        if (targetType == typeof(sbyte)) return unchecked((sbyte)value);
-        if (targetType == typeof(byte)) return unchecked((byte)value);
-        if (targetType == typeof(short)) return unchecked((short)value);
-        if (targetType == typeof(ushort)) return unchecked((ushort)value);
-        if (targetType == typeof(int)) return unchecked((int)value);
-        if (targetType == typeof(uint)) return unchecked((uint)value);
-        if (targetType == typeof(long)) return (long)value;
-        if (targetType == typeof(ulong)) return unchecked((ulong)value);
-        if (targetType == typeof(nint)) return value;
-        if (targetType == typeof(nuint)) return unchecked((nuint)value);
-
-        throw new InvalidCastException($"Unsupported target type '{targetType}'.");
-    }
-    
-    private static readonly Dictionary<string, Type> TypesMap = new()
-    {
-        //{ "bool",    typeof(bool) }, // ReloadedHooks doesn't play nice with bools for some reason.
-        { "byte",    typeof(byte) },
-        { "sbyte",   typeof(sbyte) },
-        { "float",   typeof(float) },
-        { "int",     typeof(int) },
-        { "uint",    typeof(uint) },
-        { "long",    typeof(long) },
-        { "ulong",   typeof(ulong) },
-        { "short",   typeof(short) },
-        { "ushort",  typeof(ushort) },
-        { "nint",    typeof(nint) },
-        { "nuint",   typeof(nuint) },
-    };
 
     private delegate nint Func0();
     private delegate nint Func1(nint a);

@@ -21,6 +21,7 @@ public class Mod : ModBase
     private Config _config;
     private readonly IModConfig _modConfig;
     private readonly List<PyloadedMod> _pyMods = [];
+    private readonly string[] _pyHelperScripts;
     private readonly PyloadedScans _scans;
 
     public Mod(ModContext context)
@@ -36,9 +37,13 @@ public class Mod : ModBase
 #endif
         Project.Initialize(_modConfig, _modLoader, _log, true);
         Log.LogLevel = _config.LogLevel;
+        
+        _scans = new(_modLoader, _hooks!);
 
         var modDir = _modLoader.GetDirectoryForModId(_modConfig.ModId);
-        _scans = new(_modLoader, _hooks!);
+
+        var helpersDir = Path.Join(modDir, "Python", "PyloadedHelpers");
+        _pyHelperScripts = Directory.GetFiles(helpersDir).Select(File.ReadAllText).ToArray();
         
         Runtime.PythonDLL = Path.Join(modDir, "python", "python313.dll");
         PythonEngine.Initialize();
@@ -68,7 +73,7 @@ public class Mod : ModBase
         var pyModFile = Path.Join(pyloadedDir, "mod.py");
         if (!File.Exists(pyModFile)) return;
         
-        _pyMods.Add(new(_modLoader, _scans, _log, modConfig.ModName, pyModFile));
+        _pyMods.Add(new(_modLoader, _scans, _log, modConfig.ModName, pyModFile, _pyHelperScripts));
     }
 
     #region Standard Overrides
